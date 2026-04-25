@@ -1,12 +1,10 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 
-const FILE_URL = `file://${path.join(__dirname, '../index.html')}`;
-
 test.describe('Canvas Image Processing Autograding', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto(FILE_URL);
+        await page.goto('/');
         // Wait for the vision engine to initialize and draw something
         await page.waitForTimeout(1000); 
     });
@@ -59,29 +57,26 @@ test.describe('Canvas Image Processing Autograding', () => {
 
     test('UI layer should be separate from image layer', async ({ page }) => {
         // Move mouse to trigger crosshairs
-        await page.mouse.move(100, 100);
-        await page.waitForTimeout(200);
+        await page.mouse.move(150, 150);
+        await page.waitForTimeout(500);
 
-        const uiHasContent = await page.evaluate(() => {
-            const canvas = document.getElementById('ui-canvas');
-            const ctx = canvas.getContext('2d');
-            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        const { uiHasContent, imageHasContent } = await page.evaluate(() => {
+            const uiCanvas = document.getElementById('ui-canvas');
+            const imgCanvas = document.getElementById('image-canvas');
             
-            for (let i = 0; i < data.length; i += 4) {
-                if (data[i+3] > 0) return true; // Found some non-transparent pixel
-            }
-            return false;
-        });
+            const checkContent = (canvas) => {
+                const ctx = canvas.getContext('2d');
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i+3] > 0) return true;
+                }
+                return false;
+            };
 
-        const imageHasContent = await page.evaluate(() => {
-            const canvas = document.getElementById('image-canvas');
-            const ctx = canvas.getContext('2d');
-            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                if (data[i+3] > 0) return true;
-            }
-            return false;
+            return {
+                uiHasContent: checkContent(uiCanvas),
+                imageHasContent: checkContent(imgCanvas)
+            };
         });
 
         expect(uiHasContent).toBe(true);
