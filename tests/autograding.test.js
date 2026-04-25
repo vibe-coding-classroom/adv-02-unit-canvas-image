@@ -66,8 +66,11 @@ test.describe('Canvas Image Processing Autograding', () => {
     });
 
     test('UI layer should be separate from image layer', async ({ page }) => {
-        // Move mouse to trigger crosshairs
-        await page.mouse.move(150, 150);
+        const uiCanvas = await page.locator('#ui-canvas');
+        const box = await uiCanvas.boundingBox();
+        
+        // Move mouse to the middle of the canvas
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
         await page.waitForTimeout(500);
 
         const { uiHasContent, imageHasContent } = await page.evaluate(() => {
