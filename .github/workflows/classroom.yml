@@ -28,4 +28,6 @@ jobs:
         uses: education/autograding-grading-reporter@v1
         with:
           runners: autograding-tests
+        env:
+          AUTOGRADING-TESTS_RESULTS: "${{steps.autograding-tests.outputs.result}}"
         if: always()
