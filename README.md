@@ -1,5 +1,3 @@
-Viewed adv-02-unit-canvas-image.html:1-431
-
 針對 **`adv-02-unit-canvas-image` (HTML5 Canvas 影像繪製與處理)** 單元，這是一個將 Web 技術轉化為「視覺處理引擎」的關鍵課程，重點在於底層像素的直接操控與高效渲染。
 
 以下是在 **GitHub Classroom** 部署其作業 (Assignments) 的具體建議：
