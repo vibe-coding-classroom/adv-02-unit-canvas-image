@@ -1,0 +1,14 @@
+{
+  "name": "adv-02-unit-canvas-image",
+  "version": "1.0.0",
+  "description": "HTML5 Canvas Image Processing Classroom Project",
+  "main": "index.html",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "serve": "npx -y serve ."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.0"
+  }
+}

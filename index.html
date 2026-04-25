@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Engine - Canvas Image Processing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent-color: #38bdf8;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+
+        header {
+            grid-column: span 2;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            aspect-ratio: 16/9;
+            width: 100%;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-canvas {
+            z-index: 10;
+            cursor: crosshair;
+        }
+
+        .controls-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .control-group h3 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        button.active {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            font-weight: 600;
+        }
+
+        .stats-panel {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--accent-color);
+        }
+
+        #video-source {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            header {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <video id="video-source" autoplay playsinline loop muted></video>
+
+    <div class="container">
+        <header>
+            <h1>Visual Engine</h1>
+            <p class="subtitle">HTML5 Canvas Real-time Image Processing & Pixel Manipulation</p>
+        </header>
+
+        <main class="canvas-wrapper" id="canvas-container">
+            <canvas id="image-canvas"></canvas>
+            <canvas id="ui-canvas"></canvas>
+        </main>
+
+        <aside class="controls-panel">
+            <div class="control-group">
+                <h3>Filters</h3>
+                <div class="button-grid">
+                    <button id="btn-grayscale">Grayscale</button>
+                    <button id="btn-mirror">Mirror</button>
+                    <button id="btn-invert">Invert</button>
+                    <button id="btn-sepia">Sepia</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>ROI & Tools</h3>
+                <button id="btn-roi">Extract ROI (100x100)</button>
+                <button id="btn-reset">Reset All</button>
+            </div>
+
+            <div class="control-group">
+                <h3>Telemetry</h3>
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <span class="stat-label">FPS:</span>
+                        <span class="stat-value" id="stat-fps">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">X, Y:</span>
+                        <span class="stat-value" id="stat-coords">0, 0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">RGB:</span>
+                        <span class="stat-value" id="stat-rgb">0, 0, 0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Index:</span>
+                        <span class="stat-value" id="stat-index">0</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script type="module" src="src/vision-engine.js"></script>
+</body>
+</html>

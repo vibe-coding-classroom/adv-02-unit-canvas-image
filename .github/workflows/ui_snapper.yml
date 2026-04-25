@@ -1,0 +1,33 @@
+name: UI Snapper
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Capture Screenshot
+        run: |
+          npx playwright test -g "should have dual-canvas structure" --project=chromium
+          # Note: In a real classroom, we'd use a dedicated script to save a specific screenshot
+          # and upload it as an artifact or post to the PR.
+          # For now, we simulate the 'snapping' logic.
+          mkdir -p screenshots
+          npx playwright screenshot --viewport-size=1280,720 file://$(pwd)/index.html screenshots/preview.png
+
+      - name: Upload Screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-preview
+          path: screenshots/preview.png
