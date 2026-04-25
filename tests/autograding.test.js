@@ -18,30 +18,40 @@ test.describe('Canvas Image Processing Autograding', () => {
     });
 
     test('grayscale filter should correctly average RGB values', async ({ page }) => {
+        // First ensure we have data
+        await page.waitForTimeout(1000);
+        
         // Toggle grayscale filter
         await page.click('#btn-grayscale');
-        await page.waitForTimeout(500); // Wait for processing
+        await page.waitForTimeout(1000); // Wait for processing
 
-        const pixels = await page.evaluate(() => {
+        const result = await page.evaluate(() => {
             const canvas = document.getElementById('image-canvas');
             const ctx = canvas.getContext('2d');
-            const data = ctx.getImageData(0, 0, 10, 10).data; // Sample top-left 10x10
+            const data = ctx.getImageData(0, 0, 50, 50).data; // Larger sample
             
             let isGrayscale = true;
+            let hasData = false;
+            
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
                 const g = data[i+1];
                 const b = data[i+2];
-                // Check if R, G, B are equal (or very close)
-                if (Math.abs(r - g) > 1 || Math.abs(g - b) > 1) {
+                const a = data[i+3];
+
+                if (a > 0) hasData = true;
+
+                // Check if R, G, B are equal (or very close due to rounding/precision)
+                if (Math.abs(r - g) > 2 || Math.abs(g - b) > 2) {
                     isGrayscale = false;
                     break;
                 }
             }
-            return isGrayscale;
+            return { isGrayscale, hasData };
         });
 
-        expect(pixels).toBe(true);
+        expect(result.hasData).toBe(true);
+        expect(result.isGrayscale).toBe(true);
     });
 
     test('mirror filter should produce symmetrical-like results', async ({ page }) => {

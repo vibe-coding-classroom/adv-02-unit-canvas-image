@@ -86,9 +86,12 @@ class VisionEngine {
         this.updateFPS(now);
 
         // Match canvas size to video/container
-        if (this.imgCanvas.width !== this.imgCanvas.clientWidth) {
-            this.imgCanvas.width = this.uiCanvas.width = this.imgCanvas.clientWidth;
-            this.imgCanvas.height = this.uiCanvas.height = this.imgCanvas.clientHeight;
+        const targetWidth = this.imgCanvas.clientWidth || 1280;
+        const targetHeight = this.imgCanvas.clientHeight || 720;
+
+        if (this.imgCanvas.width !== targetWidth || this.imgCanvas.height !== targetHeight) {
+            this.imgCanvas.width = this.uiCanvas.width = targetWidth;
+            this.imgCanvas.height = this.uiCanvas.height = targetHeight;
         }
 
         const { width, height } = this.imgCanvas;
